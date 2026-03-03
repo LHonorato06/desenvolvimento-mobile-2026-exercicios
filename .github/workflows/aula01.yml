@@ -1,0 +1,226 @@
+name: Validar Exercício - Aula 01
+
+on:
+  pull_request:
+    paths:
+      - 'exercicios/aula01/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'exercicios/aula01/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v3
+      
+      - name: Setup JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+      
+      - name: Verificar estrutura do projeto
+        id: check-structure
+        run: |
+          echo "🔍 Verificando estrutura do projeto Android..."
+          SCORE=0
+          ERRORS=""
+          PROJECT_PATH="exercicios/aula01/HelloMobile"
+          
+          echo "## 📊 Validação Automática - Aula 01" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Verificar se pasta HelloMobile existe
+          if [ -d "$PROJECT_PATH" ]; then
+            echo "✅ Pasta HelloMobile encontrada"
+            echo "✅ Pasta HelloMobile encontrada" >> $GITHUB_STEP_SUMMARY
+            SCORE=$((SCORE + 10))
+          else
+            echo "❌ Pasta HelloMobile não encontrada"
+            echo "❌ Pasta HelloMobile não encontrada" >> $GITHUB_STEP_SUMMARY
+            ERRORS="${ERRORS}\n- Crie o projeto com nome HelloMobile"
+            echo "score=$SCORE" >> $GITHUB_OUTPUT
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "### ❌ Score Final: $SCORE/100" >> $GITHUB_STEP_SUMMARY
+            echo "**Status:** REPROVADO (mínimo 70/100)" >> $GITHUB_STEP_SUMMARY
+            exit 1
+          fi
+          
+          # Verificar MainActivity.kt
+          MAIN_ACTIVITY=$(find $PROJECT_PATH -name "MainActivity.kt" | head -1)
+          if [ -f "$MAIN_ACTIVITY" ]; then
+            echo "✅ MainActivity.kt encontrada"
+            echo "✅ MainActivity.kt encontrada" >> $GITHUB_STEP_SUMMARY
+            SCORE=$((SCORE + 10))
+            
+            # Verificar package name
+            if grep -q "package com\." "$MAIN_ACTIVITY"; then
+              echo "✅ Package name correto"
+              echo "✅ Package name correto" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 5))
+            else
+              echo "❌ Package name incorreto"
+              echo "❌ Package name incorreto" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Package name deve começar com com.seuusername"
+            fi
+            
+            # Verificar array de cores
+            if grep -q "Color.parseColor" "$MAIN_ACTIVITY"; then
+              echo "✅ Array de cores encontrado"
+              echo "✅ Array de cores encontrado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 10))
+            else
+              echo "❌ Array de cores não encontrado"
+              echo "❌ Array de cores não encontrado" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Adicione array com Color.parseColor"
+            fi
+            
+            # Verificar findViewById
+            if grep -q "findViewById" "$MAIN_ACTIVITY"; then
+              echo "✅ findViewById implementado"
+              echo "✅ findViewById implementado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 10))
+            else
+              echo "❌ findViewById não encontrado"
+              echo "❌ findViewById não encontrado" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Use findViewById para pegar as views"
+            fi
+            
+            # Verificar setOnClickListener
+            if grep -q "setOnClickListener" "$MAIN_ACTIVITY"; then
+              echo "✅ setOnClickListener implementado"
+              echo "✅ setOnClickListener implementado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 10))
+            else
+              echo "❌ setOnClickListener não encontrado"
+              echo "❌ setOnClickListener não encontrado" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Adicione setOnClickListener no botão"
+            fi
+            
+            # Verificar setBackgroundColor
+            if grep -q "setBackgroundColor" "$MAIN_ACTIVITY"; then
+              echo "✅ setBackgroundColor implementado"
+              echo "✅ setBackgroundColor implementado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 10))
+            else
+              echo "❌ setBackgroundColor não encontrado"
+              echo "❌ setBackgroundColor não encontrado" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Use setBackgroundColor para mudar cor"
+            fi
+          else
+            echo "❌ MainActivity.kt não encontrada"
+            echo "❌ MainActivity.kt não encontrada" >> $GITHUB_STEP_SUMMARY
+            ERRORS="${ERRORS}\n- Crie MainActivity.kt"
+          fi
+          
+          # Verificar activity_main.xml
+          LAYOUT_XML=$(find $PROJECT_PATH -path "*/layout/activity_main.xml" | head -1)
+          if [ -f "$LAYOUT_XML" ]; then
+            echo "✅ activity_main.xml encontrado"
+            echo "✅ activity_main.xml encontrado" >> $GITHUB_STEP_SUMMARY
+            SCORE=$((SCORE + 10))
+            
+            # Verificar LinearLayout com id
+            if grep -q 'android:id="@+id/rootLayout"' "$LAYOUT_XML"; then
+              echo "✅ LinearLayout com id correto"
+              echo "✅ LinearLayout com id correto" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 5))
+            else
+              echo "❌ LinearLayout sem id rootLayout"
+              echo "❌ LinearLayout sem id rootLayout" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- LinearLayout precisa ter id rootLayout"
+            fi
+            
+            # Verificar TextViews
+            TV_COUNT=$(grep -c '<TextView' "$LAYOUT_XML" || echo "0")
+            if [ "$TV_COUNT" -ge 3 ]; then
+              echo "✅ 3+ TextViews encontrados"
+              echo "✅ 3+ TextViews encontrados" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 5))
+            else
+              echo "❌ Menos de 3 TextViews"
+              echo "❌ Menos de 3 TextViews" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Adicione pelo menos 3 TextViews"
+            fi
+            
+            # Verificar Button com id
+            if grep -q 'android:id="@+id/btnMudarCor"' "$LAYOUT_XML"; then
+              echo "✅ Button com id correto"
+              echo "✅ Button com id correto" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 5))
+            else
+              echo "❌ Button sem id btnMudarCor"
+              echo "❌ Button sem id btnMudarCor" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Button precisa ter id btnMudarCor"
+            fi
+            
+            # Verificar personalização
+            if ! grep -q 'Seu Nome' "$LAYOUT_XML" && ! grep -q 'Matrícula:' "$LAYOUT_XML"; then
+              echo "✅ Conteúdo personalizado"
+              echo "✅ Conteúdo personalizado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 10))
+            else
+              echo "❌ Conteúdo não personalizado"
+              echo "❌ Conteúdo não personalizado" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Personalize os TextViews com seu nome"
+            fi
+          else
+            echo "❌ activity_main.xml não encontrado"
+            echo "❌ activity_main.xml não encontrado" >> $GITHUB_STEP_SUMMARY
+            ERRORS="${ERRORS}\n- Crie activity_main.xml no res/layout"
+          fi
+          
+          # Verificar build.gradle
+          BUILD_GRADLE=$(find $PROJECT_PATH -name "build.gradle*" | head -1)
+          if [ -f "$BUILD_GRADLE" ]; then
+            if grep -q "minSdk.*24" "$BUILD_GRADLE" || grep -q "minSdkVersion 24" "$BUILD_GRADLE"; then
+              echo "✅ MinSDK 24 configurado"
+              echo "✅ MinSDK 24 configurado" >> $GITHUB_STEP_SUMMARY
+              SCORE=$((SCORE + 5))
+            else
+              echo "❌ MinSDK diferente de 24"
+              echo "❌ MinSDK diferente de 24" >> $GITHUB_STEP_SUMMARY
+              ERRORS="${ERRORS}\n- Configure minSdk = 24"
+            fi
+          fi
+          
+          echo "score=$SCORE" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "---" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Score Final: **$SCORE/100**" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          if [ $SCORE -ge 90 ]; then
+            echo "**Status:** ✅ EXCELENTE (90+)" >> $GITHUB_STEP_SUMMARY
+            echo "🎉 Perfeito! Você dominou os conceitos!" >> $GITHUB_STEP_SUMMARY
+          elif [ $SCORE -ge 70 ]; then
+            echo "**Status:** ✅ APROVADO (70-89)" >> $GITHUB_STEP_SUMMARY
+            echo "👍 Bom trabalho! Exercício aprovado." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Status:** ❌ REPROVADO (< 70)" >> $GITHUB_STEP_SUMMARY
+            echo "📝 Corrija os problemas e tente novamente." >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📚 Recursos" >> $GITHUB_STEP_SUMMARY
+          echo "- [Documentação Android](https://developer.android.com)" >> $GITHUB_STEP_SUMMARY
+          echo "- [Slides Aula 01](https://github.com/petrosbarreto/desenvolvimento-mobile-2026)" >> $GITHUB_STEP_SUMMARY
+          echo "- [README do Exercício](https://github.com/petrosbarreto/desenvolvimento-mobile-2026-exercicios/tree/main/exercicios/aula01)" >> $GITHUB_STEP_SUMMARY
+          
+          echo ""
+          echo "========================================="
+          echo "📊 SCORE FINAL: $SCORE/100"
+          echo "========================================="
+      
+      - name: Definir status do check
+        if: steps.check-structure.outputs.score < 70
+        run: |
+          echo "❌ Score abaixo de 70/100. Exercício REPROVADO."
+          echo "Veja o resumo acima para detalhes."
+          exit 1
