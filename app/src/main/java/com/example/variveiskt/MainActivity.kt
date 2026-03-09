@@ -65,3 +65,32 @@ class Aluno(
         println("Situação: ${verificarSituacao()}")
     }
 }
+data class Produto(
+    val nome: String,
+    var preco: Double,
+    var estoque: Int
+) {
+
+    fun vender(quantidade: Int) {
+        if (quantidade <= estoque) {
+            estoque -= quantidade
+            println("Venda realizada: $quantidade unidade(s) de $nome")
+        } else {
+            println("Estoque insuficiente para $nome")
+        }
+    }
+
+    fun repor(quantidade: Int) {
+        estoque += quantidade
+        println("Estoque de $nome atualizado. Novo estoque: $estoque")
+    }
+
+    fun exibirInfo() {
+        println("=== Produto ===")
+        println("Nome: $nome")
+        println("Preço: R$ $preco")
+        println("Estoque: $estoque")
+    }
+}
+
+
